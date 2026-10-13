@@ -1,0 +1,13 @@
+---
+title: "Intro to Genomics"
+toc: false
+listing:
+  contents:
+    - "**/*.Rmd"
+  type: grid
+  grid-columns: 3
+  fields: [title, description]
+  sort: "title"
+---
+
+Explore worked examples and tutorials in genomics.

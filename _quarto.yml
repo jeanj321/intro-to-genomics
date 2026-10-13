@@ -1,0 +1,24 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - index.qmd
+    - "**/*.Rmd"
+
+website:
+  title: "Intro to Genomics"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+  search: true
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-title: "On this page"
+    toc-location: right
+    toc-depth: 3
+    code-fold: true
+    code-tools: true
