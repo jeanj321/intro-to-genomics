@@ -1,0 +1,76 @@
+---
+title: "DESeq2_analysis"
+output: html_document
+date: "2026-10-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+# Introduction
+
+```{r}
+library(airway)
+vignette("airway")
+```
+
+```{r}
+library(tidyverse)
+library(DESeq2)
+library(annotables)
+library(PCAtools)
+library(EnhancedVolcano)
+library(clusterProfiler)
+```
+
+
+# Data Import
+
+
+```{r}
+raw_counts <- read.csv("airway_raw_counts.csv", row.names = 1)
+mtd <- read.csv("airway_metadata.csv", row.names = 1)
+```
+row.names = 1 means that using the first column as row names.
+
+```{r}
+head(raw_counts)
+```
+```{r}
+head(mtd)
+```
+
+```{r}
+all(rownames(mtd) == colnames(raw_counts))
+```
+
+
+# Pre-filtering
+
+
+# Summary
+
+```{r}
+
+```
+
