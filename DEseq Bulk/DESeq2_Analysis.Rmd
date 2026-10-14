@@ -8,32 +8,14 @@ date: "2026-10-13"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. \# Introduction
-
 ```{r}
 # library(airway)
 # vignette("airway")
 ```
 
-```{r}
+They would load the airway example dataset package and open its tutorial.
+
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(DESeq2)
 library(annotables)
@@ -41,6 +23,18 @@ library(PCAtools)
 library(EnhancedVolcano)
 library(clusterProfiler)
 ```
+
+tidyverse: data manipulation, including joining, filtering, and renaming
+
+DESeq2: statistical analysis of differential expression from RNA-seq counts
+
+annotables: gene annotation tables linking IDs to names, locations, and gene types
+
+PCAtools: PCA visualization
+
+EnhancedVolcano: volcano plots displaying differential expression results
+
+clusterProfiler: functional enrichment analysis of gene sets
 
 # Data Import
 
@@ -60,13 +54,145 @@ head(mtd)
 ```
 
 ```{r}
+unique(mtd$cell)
+```
+
+This identifies the different values in the cell column. Eg. n1 n2 n3 n4 n1 n2 n3 n4 \>\> Output: n1 n2 n3 n4
+
+```{r}
+summary(mtd)
+```
+
+an overview of the metadata columns
+
+```{r}
 all(rownames(mtd) == colnames(raw_counts))
 ```
 
+whether the samples occur in exactly the same order in both tables
+
+If not match:
+
+```{r}
+raw_counts <- raw_counts[, match(rownames(mtd), colnames(raw_counts))]
+```
+
+match(rownames(mtd), colnames(raw_counts))
+
+| Position | Metadata Row | Counts Column |
+|----------|--------------|---------------|
+| 1        | Sample A     | Sample B      |
+| 2        | Sample B     | Sample C      |
+| 3        | Sample C     | Sample A      |
+
+\# 3 1 2
+
 # Pre-filtering
+
+## Low counts
+
+```{r}
+smallestGroupSize <- 4
+keep <- rowSums(raw_counts >= 10) >= smallestGroupSize
+raw_counts_filtered <- raw_counts[keep,]
+```
+
+Retain a gene if its count is at least 10 in at least four samples.
+
+| Example counts across eight samples | Samples with count ≥ 10 | Retained? |
+|-------------------------------------|-------------------------|-----------|
+| `12, 15, 20, 11, 0, 0, 0, 0`        | 4                       | Yes       |
+| `100, 0, 0, 0, 0, 0, 0, 0`          | 1                       | No        |
+| `9, 9, 9, 9, 9, 9, 9, 9`            | 0                       | No        |
+
+```{r}
+dim(raw_counts)
+dim(raw_counts_filtered)
+```
+
+dim() dimension
+
+```         
+[1] 63677     8 [1] 16139     8
+```
+
+```{r}
+gene_anno <- data.frame(ensgene = rownames(raw_counts_filtered)) %>%
+  left_join(grch37, by= "ensgene") %>%
+  distinct(symbol, .keep_all = TRUE) %>% # sometimes one ENSEMBL might have two different SYMBOLs or ENTREZ. It might happen where there are multiple isoforms of one gene etc. This makes sure that when an ENS is doubled, we only take the first observation.
+  rename(gene_start = start, gene_end = end, gene_strand = strand) # start/end/strand are reserved names in rowData (GRanges), so DESeq2 would error
+head(gene_anno)
+dim(gene_anno)
+```
+
+This converts a list of retained gene identifiers into a table containing biological information about those genes.
+
+```{r}
+data.frame(ensgene = rownames(raw_counts_filtered))
+```
+
+This step places Ensembl gene IDs into an annotation table.
+
+```{r}
+left_join(grch37, by = "ensgene")
+```
+
+grch37 is a human gene annotation table supplied by annotables. It provides information: gene symbols, Entrez IDs, chromosome locations, and biological types. (grch37 right table)
+
+```{r}
+distinct(symbol, .keep_all = TRUE)
+```
+
+This keeps the first record for each distinct gene symbol.
+
+```{r}
+unique(gene_anno$biotype)
+```
+
+```{r}
+table(gene_anno$biotype)
+```
+
+```{r}
+gene_anno <- gene_anno %>%
+  filter(biotype == 'protein_coding') %>%
+  filter(!grepl("^MT-", symbol, ignore.case = TRUE)) # remove mitochondrial genes (MT- human, mt- mouse)
+dim(gene_anno)
+```
+
+The first filter retains genes annotated as protein-coding.
+
+The second filter removes genes whose symbols begin with MT-.
+
+```{r}
+raw_counts_filtered <- raw_counts_filtered[gene_anno$ensgene, ] # retain only protein coding genes
+rownames(raw_counts_filtered) <- gene_anno$symbol # replace ENS with symbols count table
+rownames(gene_anno) <- gene_anno$symbol
+dim(raw_counts_filtered)
+```
+
+First line: It selects count rows using the retained Ensembl IDs and arranges them in the order of gene_anno.
+
+2nd and 3rd line: These replace the row labels with readable gene symbols.
+
+```{r}
+class(raw_counts[,1])
+class(raw_counts[[1]])
+raw_counts$SRR1039521
+raw_counts[ , "SRR1039521"]
+raw_counts[1:1, 1:2]
+```
 
 # Summary
 
 ```{r}
 
+```
+
+```{r}
+class(1L)
+class(1.2)
+class(c(1,2))
+class("hello")
+class(c("hello", "world"))
 ```
