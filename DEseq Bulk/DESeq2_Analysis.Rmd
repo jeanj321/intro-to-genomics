@@ -116,6 +116,8 @@ dim() dimension
 [1] 63677     8 [1] 16139     8
 ```
 
+## Convert ENSEMBL to SYMBOL
+
 ```{r}
 gene_anno <- data.frame(ensgene = rownames(raw_counts_filtered)) %>%
   left_join(grch37, by= "ensgene") %>%
@@ -133,17 +135,22 @@ data.frame(ensgene = rownames(raw_counts_filtered))
 
 This step places Ensembl gene IDs into an annotation table.
 
-```{r}
-left_join(grch37, by = "ensgene")
+```{r, eval=FALSE}
+data.frame(ensgene = rownames(raw_counts_filtered)) %>%
+  left_join(grch37, by = "ensgene")
 ```
 
 grch37 is a human gene annotation table supplied by annotables. It provides information: gene symbols, Entrez IDs, chromosome locations, and biological types. (grch37 right table)
 
 ```{r}
-distinct(symbol, .keep_all = TRUE)
+data.frame(ensgene = rownames(raw_counts_filtered)) %>%
+  left_join(grch37, by = "ensgene") %>%
+  distinct(symbol, .keep_all = TRUE)
 ```
 
 This keeps the first record for each distinct gene symbol.
+
+## Retain only protein coding genes
 
 ```{r}
 unique(gene_anno$biotype)
@@ -181,6 +188,129 @@ class(raw_counts[[1]])
 raw_counts$SRR1039521
 raw_counts[ , "SRR1039521"]
 raw_counts[1:1, 1:2]
+```
+
+# DESeq2 Workflow Part I
+
+```{r}
+mtd$dex <- factor(mtd$dex, levels = c('untrt', 'trt'))
+dds <- DESeqDataSetFromMatrix(countData = raw_counts_filtered, 
+                              colData = mtd,
+                              rowData = gene_anno,
+                              design = ~ cell + dex)
+```
+
+```{r}
+mtd$dex <- factor(mtd$dex, levels = c('untrt', 'trt'))
+```
+
+put 'untrt' first \>\> set untreated samples as the reference
+
+```{r}
+dds <- DESeqDataSetFromMatrix(countData = raw_counts_filtered, 
+                              colData = mtd,
+                              rowData = gene_anno,
+                              design = ~ cell + dex)
+```
+
+DESeqDataSetFromMatrix(): a DESeq2 function that combines a count matrix, metadata, and a design formula into a DESeqDataSet object.
+
+design = \~ cell + dex
+
+two factor used here to model gene expression: cell line and treatment
+
+In this paired experiment, each cell line has both treated and untreated samples. Including cell lets the model account for that pairing when estimating the drug effect.
+
+```{r}
+class(dds)
+```
+
+```{r}
+dds
+```
+
+Display its dimensions and stored information
+
+```{r}
+colData(dds)
+```
+
+sample metadata
+
+```{r}
+rowData(dds)
+```
+
+gene_anno
+
+```{r}
+dds@design
+```
+
+the design formula
+
+```{r}
+head(counts(dds))
+```
+
+```{r}
+dds <- DESeq(dds)
+
+```
+
+Estimates size factors for normalization, estimates gene dispersions, and fits negative binomial models with Wald tests
+
+```{r}
+dds
+```
+
+```{r}
+as.data.frame(colData(dds))
+```
+
+```{r}
+head(counts(dds, normalize = TRUE))
+```
+
+```{r}
+vsd <- vst(dds, blind=FALSE)
+vsd
+```
+
+vst stands for variance-stabilizing transformation.
+
+blind means whether take design = \~ cell + dex into consideration. blind = FALSE means taking into consideration.
+
+```{r}
+pca_plot <- vsd %>%
+  assay %>%
+  pca(., vsd@colData, removeVar = 0.9) %>% # remove 90% of lower variance -> retains top 10% most variable genes
+  biplot(colby = "cell",  shape = 'dex', legendPosition = 'right', lab = NULL )
+pca_plot
+```
+
+assay(vsd): This extracts the transformed expression matrix from vsd.
+
+pca(., [vsd\@colData](mailto:vsd@colData){.email}, removeVar = 0.9)
+
+removeVar = 0.9 removes the 90% lowest-variance genes
+
+biplot() create a plot with two dimensions (x and y axis).
+
+|                          |                                            |
+|--------------------------|--------------------------------------------|
+| colby = "cell"           | Colors points by cell line                 |
+| shape = 'dex'            | Uses different shapes for treatment groups |
+| legendPosition = 'right' | Places the legend on the right             |
+| lab = NULL               | Hides sample-name labels                   |
+
+PCA: Each point represents one sample.
+
+# DESeq Workflow Part II
+
+```{r}
+resultsNames(dds)
+
 ```
 
 # Summary
