@@ -364,6 +364,7 @@ p_volcano_enhanced <- EnhancedVolcano(res,
                 pCutoff = 0.05,
                 FCcutoff = 0,
                 pointSize = 1.0)
+p_volcano_enhanced 
 ```
 
 ```{r}
