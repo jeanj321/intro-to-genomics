@@ -22,6 +22,7 @@ library(annotables)
 library(PCAtools)
 library(EnhancedVolcano)
 library(clusterProfiler)
+library(ggrepel)
 ```
 
 tidyverse: data manipulation, including joining, filtering, and renaming
@@ -308,9 +309,270 @@ PCA: Each point represents one sample.
 
 # DESeq Workflow Part II
 
+## Differential Expression Test
+
 ```{r}
 resultsNames(dds)
+```
 
+```{r}
+res <- results(dds, name = "dex_trt_vs_untrt", alpha = 0.05) # alpha is the p-value threshold to whether call a gene significant or not.
+
+# alternatively (gives the same numbers, but lfcShrink() cannot be given this res, because it needs the coefficient name)
+# res <- results(dds, contrast = c("dex", "trt", "untrt"), alpha = 0.05)
+```
+
+```{r}
+summary(res)
+```
+
+```{r}
+head(res)
+```
+
+## Adjusted p-value and multiple testing correction
+
+```{r}
+sum(res$pvalue < 0.05)
+```
+
+```{r}
+0.05 * sum(res$padj < 0.05)
+```
+
+```{r}
+p_hist <- ggplot(res, aes(x=pvalue)) +
+  geom_histogram() +
+  theme_bw()
+
+p_hist
+```
+
+```{r}
+# BiocManager::install("apeglm")
+res <- lfcShrink(dds, coef = 'dex_trt_vs_untrt', res = res ,type='apeglm')
+```
+
+## Volcano Plot
+
+```{r}
+p_volcano_enhanced <- EnhancedVolcano(res,
+                lab = rownames(res),
+                x = 'log2FoldChange',
+                y = 'padj',
+                title = 'Dex: trt vs. untrt', subtitle = NULL,
+                pCutoff = 0.05,
+                FCcutoff = 0,
+                pointSize = 1.0)
+```
+
+```{r}
+padj_cutoff <- 0.05
+lfc_cutoff <- 0
+
+deg_table <- res %>%
+  data.frame() %>%
+  mutate(geneid = rownames(.)) %>%
+  filter(!is.na(padj)) %>%
+  mutate(
+    diffexpressed = case_when(padj > padj_cutoff ~ "NS",
+                              log2FoldChange > lfc_cutoff & padj < padj_cutoff ~ "UP",
+                              log2FoldChange < -lfc_cutoff & padj < padj_cutoff ~ "DOWN",
+                              TRUE ~ "NS"))
+```
+
+```{r}
+head(deg_table)
+```
+
+```{r}
+table(deg_table$diffexpressed)
+```
+
+```{r}
+table(deg_table$diffexpressed)
+```
+
+```{r}
+p_volcano_basic <- ggplot(deg_table, aes(x=log2FoldChange, y=-log10(padj), color = diffexpressed)) +
+  geom_point(size = 1) +
+  geom_vline(xintercept = lfc_cutoff, linetype= 'dashed', color = 'gray') +
+  geom_hline(yintercept = padj_cutoff,linetype= 'dashed', color = 'gray') +
+  scale_color_manual(values = c(DOWN = '#2E6DB4', NS = "gray40", UP="#D6403A"))+ 
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  coord_cartesian() +
+  ggtitle('Dex: trt vs. untrt')
+```
+
+Exercise 2
+
+```{r}
+## top 20
+top20 <- deg_table%>%
+  filter(diffexpressed != "NS")%>%
+  arrange(padj)%>%
+  slice_head(n = 20)
+
+
+p_volcano_top20 <- ggplot(deg_table, aes(x=log2FoldChange, y=-log10(padj), color = diffexpressed)) +
+  geom_point(size = 1) +
+  geom_vline(xintercept = lfc_cutoff, linetype= 'dashed', color = 'gray') +
+  geom_hline(yintercept = padj_cutoff,linetype= 'dashed', color = 'gray') +
+  scale_color_manual(values = c(DOWN = '#2E6DB4', NS = "gray40", UP="#D6403A"))+ 
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  coord_cartesian() +
+  ggtitle('Dex: trt vs. untrt')+
+  geom_text_repel(data = top20, aes(label = geneid), size = 3, max.overlaps = Inf) 
+  
+```
+
+Exercise 3
+
+CACNB2：[https://www.ncbi.nlm.nih.gov/gene/783](https://www.ncbi.nlm.nih.gov/gene/783?utm_source=chatgpt.com)
+
+may alter calcium signaling and contractile properties in ASM cells
+
+SPARCL1：<https://www.ncbi.nlm.nih.gov/gene/8404>
+
+may influence cell–matrix interactions related to airway remodeling
+
+DUSP1：[https://www.ncbi.nlm.nih.gov/gene/1843](https://www.ncbi.nlm.nih.gov/gene/1843?utm_source=chatgpt.com)
+
+dexamethasone’s anti-inflammatory effects through inhibition of p38 MAPK signaling and reduced IL-6 expression in ASM
+
+SAMHD1：[https://www.ncbi.nlm.nih.gov/gene/25939](https://www.ncbi.nlm.nih.gov/gene/25939?utm_source=chatgpt.com)
+
+may contribute to nucleotide metabolism or immune regulation
+
+glucocorticoid responses in ASM
+
+MAOA：[https://www.ncbi.nlm.nih.gov/gene/4128](https://www.ncbi.nlm.nih.gov/gene/4128?utm_source=chatgpt.com)
+
+may reflect glucocorticoid-induced changes in monoamine metabolism and redox signaling
+
+Exercise 4
+
+```{r}
+## prepare deg table
+prepare_deg_table <- function(res,
+                              padj_cutoff = 0.05,
+                              lfc_cutoff = 0) {
+  
+  deg_table <- res %>%
+    data.frame() %>%
+    mutate(geneid = rownames(.)) %>%
+    filter(!is.na(padj)) %>%
+    mutate(
+      diffexpressed = case_when(
+        padj > padj_cutoff ~ "NS",
+        log2FoldChange > lfc_cutoff & padj < padj_cutoff ~ "UP",
+        log2FoldChange < -lfc_cutoff & padj < padj_cutoff ~ "DOWN",
+        TRUE ~ "NS"
+      )
+    )
+  
+  return(deg_table) 
+  
+}
+  
+## volcano plot
+library(ggrepel)
+volcano_plot <- function(deg_table,
+                         ntop_deg_labels = 20) {
+  
+  top20 <- deg_table%>%
+    filter(diffexpressed != "NS")%>%
+    arrange(padj)%>%
+    slice_head(n = ntop_deg_labels)
+  
+  
+  p <- ggplot(deg_table, aes(x=log2FoldChange, y=-log10(padj), color = diffexpressed)) +
+    geom_point(size = 1) +
+    geom_vline(xintercept = lfc_cutoff, linetype= 'dashed', color = 'gray') +
+    geom_hline(yintercept = padj_cutoff,linetype= 'dashed', color = 'gray') +
+    scale_color_manual(values = c(DOWN = '#2E6DB4', NS = "gray40", UP="#D6403A"))+ 
+    theme_bw() +
+    theme(panel.grid = element_blank()) +
+    coord_cartesian() +
+    ggtitle('Dex: trt vs. untrt')+
+    geom_text_repel(data = top20, aes(label = geneid), size = 3, max.overlaps = Inf) 
+  
+  return(p)
+}
+
+  
+```
+
+# Pathway enrichment analysis
+
+```{r}
+# Define gene sets
+# background genes = all tested genes
+universe <- rownames(deg_table)
+down_genes <- deg_table[deg_table$diffexpressed == 'DOWN', 'geneid']
+```
+
+```{r}
+## BiocManager::install("org.Hs.eg.db")
+library(clusterProfiler)
+library(org.Hs.eg.db)
+GO_down <- enrichGO(down_genes, 
+                    OrgDb = "org.Hs.eg.db", # Human database
+                    keyType = "SYMBOL", 
+                    ont = "BP",
+                    universe = universe, 
+                    qvalueCutoff = 0.05,
+                    readable = TRUE) 
+```
+
+```{r}
+dotplot(GO_down, 
+        x='FoldEnrichment', 
+        showCategory = 15) +
+  ggtitle("GO:BP, DOWN")
+```
+
+```{r, fig.height=10, fig.width=7}
+# Some GO terms are reduntant. simplify should help remove redundancy but it might be computationally demanding. 
+GO_down_clean <- clusterProfiler::simplify(GO_down)
+GO_down_clean_plot <- dotplot(GO_down_clean, 
+        x='FoldEnrichment', 
+        showCategory = 15,
+        font.size = 9,
+        label_format = 30) +
+  ggtitle("GO:BP, DOWN_CLEAN")
+GO_down_clean_plot
+```
+
+```{r}
+up_genes <- deg_table[deg_table$diffexpressed == 'UP', 'geneid']
+GO_up <- enrichGO(up_genes, 
+                    OrgDb = "org.Hs.eg.db", # Human database
+                    keyType = "SYMBOL", 
+                    ont = "BP",
+                    universe = universe, 
+                    qvalueCutoff = 0.05,
+                    readable = TRUE) 
+```
+
+```{r}
+GO_up_clean <- clusterProfiler::simplify(GO_up)
+GO_up_clean_plot <- dotplot(GO_up_clean, 
+        x='FoldEnrichment', 
+        showCategory = 15,
+        font.size = 9,
+        label_format = 30) +
+  ggtitle("GO:BP, UP_CLEAN")
+GO_up_clean_plot
+```
+
+```{r, fig.width=16, fig.height=9}
+## Exercise 6
+library(patchwork)
+
+GO_up_clean_plot | GO_down_clean_plot
 ```
 
 # Summary
