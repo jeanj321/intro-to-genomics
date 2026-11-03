@@ -35,7 +35,7 @@ PCAtools: PCA visualization
 
 EnhancedVolcano: volcano plots displaying differential expression results
 
-clusterProfiler: functional enrichment analysis of gene sets
+clusterProfiler:: functional enrichment analysis of gene sets
 
 # Data Import
 
