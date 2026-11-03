@@ -481,7 +481,9 @@ prepare_deg_table <- function(res,
 ## volcano plot
 library(ggrepel)
 volcano_plot <- function(deg_table,
-                         ntop_deg_labels = 20) {
+                         ntop_deg_labels = 20,
+                         lfc_cutoff = 0,
+                         padj_cutoff = 0.05) {
   
   top20 <- deg_table%>%
     filter(diffexpressed != "NS")%>%
@@ -491,7 +493,7 @@ volcano_plot <- function(deg_table,
   
   p <- ggplot(deg_table, aes(x=log2FoldChange, y=-log10(padj), color = diffexpressed)) +
     geom_point(size = 1) +
-    geom_vline(xintercept = lfc_cutoff, linetype= 'dashed', color = 'gray') +
+    geom_vline(xintercept = c(lfc_cutoff, -lfc_cutoff), linetype= 'dashed', color = 'gray') +
     geom_hline(yintercept = padj_cutoff,linetype= 'dashed', color = 'gray') +
     scale_color_manual(values = c(DOWN = '#2E6DB4', NS = "gray40", UP="#D6403A"))+ 
     theme_bw() +
@@ -526,6 +528,12 @@ GO_down <- enrichGO(down_genes,
                     universe = universe, 
                     qvalueCutoff = 0.05,
                     readable = TRUE) 
+
+## GO_down_table <- as.data.frame(GO_down)
+
+## GO_down_table %>% dplyr::arrange(p.adjust) %>% dplyr::select(ID, Description, p.adjust, Count) %>% head(15)
+
+## sapply(c("annotables", "org.Hs.eg.db", "GO.db","clusterProfiler", "enrichplot"),function(x) as.character(packageVersion(x)))
 ```
 
 ```{r}
@@ -536,7 +544,7 @@ GO_down_plot <- dotplot(GO_down,
 GO_down_plot 
 ```
 
-```{r, fig.height=10, fig.width=7}
+```{r}
 # Some GO terms are reduntant. simplify should help remove redundancy but it might be computationally demanding. 
 GO_down_clean <- clusterProfiler::simplify(GO_down)
 GO_down_clean_plot <- dotplot(GO_down_clean, 
@@ -605,3 +613,231 @@ class(c(1,2))
 class("hello")
 class(c("hello", "world"))
 ```
+
+# Exercise 7 Log2FoldChange Cutoff
+
+test log2FCcutoff = 1.0
+
+```{r}
+lfc_cutoff <- 1
+deg_table_lfccut <- prepare_deg_table(res, lfc_cutoff = lfc_cutoff)
+head(deg_table_lfccut)
+```
+
+```{r}
+table(deg_table_lfccut$diffexpressed)
+```
+
+```{r}
+universe <- rownames(deg_table)
+down_genes_lfccut <- deg_table[deg_table_lfccut$diffexpressed == 'DOWN', 'geneid']
+up_genes_lfccut <- deg_table[deg_table_lfccut$diffexpressed == 'UP', 'geneid']
+GO_down_lfccut<- enrichGO(down_genes_lfccut, 
+                    OrgDb = "org.Hs.eg.db", # Human database
+                    keyType = "SYMBOL", 
+                    ont = "BP",
+                    universe = universe, 
+                    qvalueCutoff = 0.05,
+                    readable = TRUE)
+GO_down_lfccut <- clusterProfiler::simplify(GO_down_lfccut)
+GO_up_lfccut <- enrichGO(up_genes_lfccut, 
+                    OrgDb = "org.Hs.eg.db", # Human database
+                    keyType = "SYMBOL", 
+                    ont = "BP",
+                    universe = universe, 
+                    qvalueCutoff = 0.05,
+                    readable = TRUE) 
+GO_up_lfccut <- clusterProfiler::simplify(GO_up_lfccut)
+
+```
+
+```{r, fig.width= 10, fig.height= 7}
+GO_down_plot_lfccut <- dotplot(GO_down_lfccut, 
+        x='FoldEnrichment', 
+        showCategory = 15,
+        font.size = 9,
+        label_format = 30) +
+  ggtitle("GO:BP, DOWN")
+GO_down_plot_lfccut
+GO_up_plot_lfccut <- dotplot(GO_up_lfccut, 
+        x='FoldEnrichment', 
+        showCategory = 15,
+        font.size = 9,
+        label_format = 30) +
+  ggtitle("GO:BP, UP")
+GO_up_plot_lfccut
+```
+
+```{r}
+volcano_plot_lfccut <- volcano_plot(deg_table_lfccut, lfc_cutoff = 1)
+volcano_plot_lfccut
+
+```
+
+```{r}
+(GO_down_clean_plot / GO_up_clean_plot)
+```
+
+```{r, fig.width=18, fig.height=8}
+(GO_down_plot_lfccut + volcano_plot_lfccut + GO_up_plot_lfccut)
+```
+
+dplyr::inner_join()
+
+# Exercise 8 **Alternative design**
+
+```{r}
+dds_dex <- DESeqDataSetFromMatrix(
+  countData = raw_counts_filtered,
+  colData = mtd,
+  rowData = gene_anno,
+  design = ~ dex
+)
+
+dds_dex <- DESeq(dds_dex)
+```
+
+```{r}
+vsd_dex <- vst(dds_dex, blind = FALSE)
+
+pca_plot_dex <- vsd_dex %>%
+  assay %>%
+  pca(., vsd_dex@colData, removeVar = 0.9) %>%
+  biplot(
+    colby = "cell",
+    shape = "dex",
+    legendPosition = "right",
+    lab = NULL
+  )
+
+pca_plot_dex
+```
+
+```{r}
+res_dex <- results(
+  dds_dex,
+  name = "dex_trt_vs_untrt",
+  alpha = 0.05
+)
+
+res_dex <- lfcShrink(
+  dds_dex,
+  coef = "dex_trt_vs_untrt",
+  res = res_dex,
+  type = "apeglm"
+)
+
+summary(res_dex)
+```
+
+```{r}
+p_hist_dex <- ggplot(res_dex, aes(x = pvalue)) +
+  geom_histogram(bins = 30) +
+  theme_bw() +
+  ggtitle("~ dex")
+
+p_hist_dex | p_hist
+sum(is.na(res_dex$pvalue))
+```
+
+```{r}
+results_cell_dex <- res %>%
+  data.frame() %>%
+  mutate(geneid = rownames(.)) %>%
+  dplyr::select(
+    geneid,
+    lfc_cell_dex = log2FoldChange,
+    padj_cell_dex = padj
+  )
+
+results_dex <- res_dex %>%
+  data.frame() %>%
+  mutate(geneid = rownames(.)) %>%
+  dplyr::select(
+    geneid,
+    lfc_dex = log2FoldChange,
+    padj_dex = padj
+  )
+
+results_combination <- dplyr::inner_join(
+  results_cell_dex,
+  results_dex,
+  by = "geneid"
+) %>%
+  mutate(
+    sig_cell_dex = !is.na(padj_cell_dex) & padj_cell_dex < 0.05,
+    sig_dex = !is.na(padj_dex) & padj_dex < 0.05,
+    significance = case_when(
+      sig_cell_dex & sig_dex ~ "Both",
+      sig_cell_dex ~ "Cell + dex only",
+      sig_dex ~ "Dex only",
+      TRUE ~ "Neither"
+    )
+  )
+
+```
+
+```{r}
+results_combination <- filter(results_combination, is.finite(lfc_cell_dex), is.finite(lfc_dex))
+correlation <- cor(results_combination$lfc_cell_dex, results_combination$lfc_dex, method = "pearson")
+fit <- lm(lfc_dex ~ lfc_cell_dex, data = results_combination)
+r_squared <- summary(fit)$r.squared
+
+lfc_scatter <- ggplot(results_combination, aes(x = lfc_cell_dex, y = lfc_dex)) +
+  geom_point(aes(color = significance), size = 1, alpha = 0.6) +
+  geom_abline(slope = 1, intercept = 0,linetype = "dashed", color = "gray") +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black"
+  ) +
+  theme_bw() +
+  labs(title = "LFC comparison", x = "log2FC: ~ cell + dex", y = "log2FC: ~ dex")
+
+lfc_scatter
+
+correlation
+r_squared
+```
+
+6
+
+```{r}
+library(limma)
+mat_no_cell <- limma::removeBatchEffect(
+  assay(vsd),
+  batch = vsd$cell,
+  design = model.matrix(~ dex, data = as.data.frame(colData(vsd)))
+)
+
+pca_no_cell <- mat_no_cell %>%
+  pca(., vsd@colData, removeVar = 0.9) %>%
+  biplot(
+    colby = "cell",
+    shape = "dex",
+    legendPosition = "right",
+    lab = NULL
+  )
+
+pca_no_cell 
+pca_plot 
+pca_plot_dex
+```
+
+```{r}
+# Number of DEGs in cell + dex
+sum(results_combination$sig_cell_dex)
+
+# Number of DEGs in dex
+sum(results_combination$sig_dex)
+
+# Number of shared and model-specific DEGs
+table(results_combination$significance)
+```
+
+1: The two PCA plots are similar. PC1 explains 48.71% of the variation for \~ dex and 51.50% for \~ cell + dex. Both separate treatment groups along PC1 and show cell line differences along PC2. After removing cell effects with limma while preserving dex, PC1 explains 91.69% of the adjusted variation and clearly separates the treatment groups(more clustered?)
+
+2: Both p-value distributions have a peak near zero and are relatively flat at larger values. The \~ cell + dex model has more small p-values, which means stronger evidence for treatment effects.
+
+3: With padj \< 0.05 and no LFC cutoff, \~ cell + dex identifies 3,834 DEGs, while \~ dex identifies 2,676.
+
+4: The models share 2,582 DEGs. Another 1,252 are significant only in \~ cell + dex, and 94 only in \~ dex.
+
+5: YES.
