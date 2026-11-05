@@ -753,8 +753,8 @@ results_combination <- dplyr::inner_join(results_cell_dex, results_dex, by = "ge
     sig_dex = (sig_dex != "NS"),
     significance = case_when(
       sig_cell_dex & sig_dex ~ "Both",
-      sig_cell_dex ~ "Cell + dex only",
-      sig_dex ~ "Dex only",
+      sig_cell_dex & !sig_dex ~ "Cell + dex only",
+      sig_dex & !sig_cell_dex ~ "Dex only",
       TRUE ~ "Neither"
     )
   )
