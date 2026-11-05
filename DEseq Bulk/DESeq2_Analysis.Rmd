@@ -682,7 +682,9 @@ volcano_plot_lfccut
 (GO_down_plot_lfccut + volcano_plot_lfccut + GO_up_plot_lfccut)
 ```
 
-dplyr::inner_join()
+## Conclusion for Exercise 7
+
+Using a log2 fold change cutoff of 1 identified fewer DEGs because only genes with as least a twofold change could be included. So the volcano plot contain fewer significant genes (genes farther from the center), and the GO enrichment results also changed and be more related to the topics we are studying because trivial expression changes were excluded. This cutoff makes the analysis more focused on genes with stronger biological effects, but some smaller changes may also be meaningful.
 
 # Exercise 8 **Alternative design**
 
