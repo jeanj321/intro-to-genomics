@@ -1,0 +1,19 @@
+---
+title: "DESeq_Macrophage"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(DESeq2)
+library(annotables)
+library(PCAtools)
+library(EnhancedVolcano)
+library(clusterProfiler)
+library(ggrepel)
+```
+
+```{r}
+source("/project/spott/jieyinj/intro-to-genomics/DESeq_Functions.R")
+```
