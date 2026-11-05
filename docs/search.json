@@ -67,6 +67,6 @@
     "href": "DEseq Bulk/DESeq2_Analysis.html#conclusion-for-exercise-7",
     "title": "DESeq2_analysis",
     "section": "Conclusion for Exercise 7",
-    "text": "Conclusion for Exercise 7\nUsing a log2 fold change cutoff of 1 identified fewer DEGs because only genes with as least a twofold change could be included. So the volcano plot contain fewer significant genes (genes farther from the center), and the GO enrichment results also changed and be more related to the topics we are studying because trivial expression changes were excluded. This cutoff makes the analysis more focused on genes with stronger biological effects, but some smaller changes may also be meaningful."
+    "text": "Conclusion for Exercise 7\nUsing a log2 fold change cutoff of 1 identified fewer DEGs because only genes with as least a twofold change could be included. So the volcano plot contain fewer significant genes (genes farther from the center), and the GO enrichment results also changed and be more related to the topics we are studying because trivial expression changes were excluded. For example, in the GO_BP_UP figure, we can see cellular response to glucocorticoid stimulus, which fulfill the expectation since dex is glucocorticoid. This cutoff makes the analysis more focused on genes with stronger biological effects, but some smaller changes may also be meaningful."
   }
 ]
