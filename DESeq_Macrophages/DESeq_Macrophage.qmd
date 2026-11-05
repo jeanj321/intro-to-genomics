@@ -4,6 +4,52 @@ format: html
 editor: visual
 ---
 
+Macrophage + LPS (What is the expected outcome?)
+
+1.  What is the experimental design?
+
+2.  Research question? What do you need (data for the analysis)
+
+3.  How would you analyze the data?
+
+4.  ANOVA
+
+    What is the eq in the DESeq?
+
+    Can be found in the DESeq vignette
+
+Intro to Macrophage and LPS
+
+Expected Outcome?
+
+1.  Experimental Design:
+
+    Human macrophages were treated with lipopolysaccharide (LPS) in a 60-minute time experiment. Untreated samples collected at 0 minutes served as control. LPS-treated samples were collected at 5, 10, 30, and 60 minutes after stimulation. There are three replicants(R1\~R3) included in the experiment. Gene expression was measured using RNA sequencing.
+
+2.  Research question?
+
+    Which genes are differentially expressed in human macrophages at 5, 10, 30, and 60 minutes after LPS stimulation compared with the untreated 0 minute control?
+
+    What data needed?
+
+    raw gene count matrix with genes as rows and RNA seq samples as columns
+
+    sample metadata
+
+3.  How would you analyze the data?
+
+    Match the raw gene counts to the sample metadata and filter out lowly expressed genes. Use PCA to check how samples cluster by time point and look for outliers.
+
+    Use DESeq2 to model gene expression with time point and 0 minutes is the reference.
+
+    Use a likelihood ratio test (LRT) to identify genes whose expression varies across the time course. Then use Wald tests to compare 5, 10, 30, and 60 minutes individually with the untreated 0-minute control.
+
+    log₂ fold changes and adjusted p-values for each comparison
+
+4.  ANOVA/DESeq
+
+    likelihood ratio test
+
 ```{r}
 library(tidyverse)
 library(DESeq2)
@@ -12,6 +58,11 @@ library(PCAtools)
 library(EnhancedVolcano)
 library(clusterProfiler)
 library(ggrepel)
+```
+
+```{r}
+# install.packages("devtools")
+# devtools::install_github("stephenturner/annotables")
 ```
 
 ```{r}
