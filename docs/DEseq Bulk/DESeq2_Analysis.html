@@ -219,7 +219,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>annotables: gene annotation tables linking IDs to names, locations, and gene types</p>
 <p>PCAtools: PCA visualization</p>
 <p>EnhancedVolcano: volcano plots displaying differential expression results</p>
-<p>clusterProfiler: functional enrichment analysis of gene sets</p>
+<p>clusterProfiler:: functional enrichment analysis of gene sets</p>
 <section id="data-import" class="level1">
 <h1>Data Import</h1>
 <div class="cell">
@@ -63707,39 +63707,23 @@ low counts [2]     : 0, 0%
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb169"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb169-1"><a href="#cb169-1" aria-hidden="true" tabindex="-1"></a>results_cell_dex <span class="ot">&lt;-</span> res <span class="sc">%&gt;%</span></span>
-<span id="cb169-2"><a href="#cb169-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb169-3"><a href="#cb169-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">geneid =</span> <span class="fu">rownames</span>(.)) <span class="sc">%&gt;%</span></span>
-<span id="cb169-4"><a href="#cb169-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb169-5"><a href="#cb169-5" aria-hidden="true" tabindex="-1"></a>    geneid,</span>
-<span id="cb169-6"><a href="#cb169-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">lfc_cell_dex =</span> log2FoldChange,</span>
-<span id="cb169-7"><a href="#cb169-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">padj_cell_dex =</span> padj</span>
-<span id="cb169-8"><a href="#cb169-8" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb169-9"><a href="#cb169-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb169-10"><a href="#cb169-10" aria-hidden="true" tabindex="-1"></a>results_dex <span class="ot">&lt;-</span> res_dex <span class="sc">%&gt;%</span></span>
-<span id="cb169-11"><a href="#cb169-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb169-12"><a href="#cb169-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">geneid =</span> <span class="fu">rownames</span>(.)) <span class="sc">%&gt;%</span></span>
-<span id="cb169-13"><a href="#cb169-13" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb169-14"><a href="#cb169-14" aria-hidden="true" tabindex="-1"></a>    geneid,</span>
-<span id="cb169-15"><a href="#cb169-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">lfc_dex =</span> log2FoldChange,</span>
-<span id="cb169-16"><a href="#cb169-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">padj_dex =</span> padj</span>
-<span id="cb169-17"><a href="#cb169-17" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb169-18"><a href="#cb169-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb169-19"><a href="#cb169-19" aria-hidden="true" tabindex="-1"></a>results_combination <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
-<span id="cb169-20"><a href="#cb169-20" aria-hidden="true" tabindex="-1"></a>  results_cell_dex,</span>
-<span id="cb169-21"><a href="#cb169-21" aria-hidden="true" tabindex="-1"></a>  results_dex,</span>
-<span id="cb169-22"><a href="#cb169-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">by =</span> <span class="st">"geneid"</span></span>
-<span id="cb169-23"><a href="#cb169-23" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb169-24"><a href="#cb169-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb169-25"><a href="#cb169-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">sig_cell_dex =</span> <span class="sc">!</span><span class="fu">is.na</span>(padj_cell_dex) <span class="sc">&amp;</span> padj_cell_dex <span class="sc">&lt;</span> <span class="fl">0.05</span>,</span>
-<span id="cb169-26"><a href="#cb169-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">sig_dex =</span> <span class="sc">!</span><span class="fu">is.na</span>(padj_dex) <span class="sc">&amp;</span> padj_dex <span class="sc">&lt;</span> <span class="fl">0.05</span>,</span>
-<span id="cb169-27"><a href="#cb169-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">significance =</span> <span class="fu">case_when</span>(</span>
-<span id="cb169-28"><a href="#cb169-28" aria-hidden="true" tabindex="-1"></a>      sig_cell_dex <span class="sc">&amp;</span> sig_dex <span class="sc">~</span> <span class="st">"Both"</span>,</span>
-<span id="cb169-29"><a href="#cb169-29" aria-hidden="true" tabindex="-1"></a>      sig_cell_dex <span class="sc">~</span> <span class="st">"Cell + dex only"</span>,</span>
-<span id="cb169-30"><a href="#cb169-30" aria-hidden="true" tabindex="-1"></a>      sig_dex <span class="sc">~</span> <span class="st">"Dex only"</span>,</span>
-<span id="cb169-31"><a href="#cb169-31" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Neither"</span></span>
-<span id="cb169-32"><a href="#cb169-32" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb169-33"><a href="#cb169-33" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb169"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb169-1"><a href="#cb169-1" aria-hidden="true" tabindex="-1"></a>results_cell_dex <span class="ot">&lt;-</span> <span class="fu">prepare_deg_table</span>(res, <span class="at">lfc_cutoff =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb169-2"><a href="#cb169-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(geneid, <span class="at">lfc_cell_dex =</span> log2FoldChange, <span class="at">sig_cell_dex =</span> diffexpressed)</span>
+<span id="cb169-3"><a href="#cb169-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb169-4"><a href="#cb169-4" aria-hidden="true" tabindex="-1"></a>results_dex <span class="ot">&lt;-</span> <span class="fu">prepare_deg_table</span>(res_dex, <span class="at">lfc_cutoff =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb169-5"><a href="#cb169-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(geneid, <span class="at">lfc_dex =</span> log2FoldChange, <span class="at">sig_dex =</span> diffexpressed)</span>
+<span id="cb169-6"><a href="#cb169-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb169-7"><a href="#cb169-7" aria-hidden="true" tabindex="-1"></a>results_combination <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">inner_join</span>(results_cell_dex, results_dex, <span class="at">by =</span> <span class="st">"geneid"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb169-8"><a href="#cb169-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb169-9"><a href="#cb169-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">sig_cell_dex =</span> (sig_cell_dex <span class="sc">!=</span> <span class="st">"NS"</span>),</span>
+<span id="cb169-10"><a href="#cb169-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">sig_dex =</span> (sig_dex <span class="sc">!=</span> <span class="st">"NS"</span>),</span>
+<span id="cb169-11"><a href="#cb169-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">significance =</span> <span class="fu">case_when</span>(</span>
+<span id="cb169-12"><a href="#cb169-12" aria-hidden="true" tabindex="-1"></a>      sig_cell_dex <span class="sc">&amp;</span> sig_dex <span class="sc">~</span> <span class="st">"Both"</span>,</span>
+<span id="cb169-13"><a href="#cb169-13" aria-hidden="true" tabindex="-1"></a>      sig_cell_dex <span class="sc">~</span> <span class="st">"Cell + dex only"</span>,</span>
+<span id="cb169-14"><a href="#cb169-14" aria-hidden="true" tabindex="-1"></a>      sig_dex <span class="sc">~</span> <span class="st">"Dex only"</span>,</span>
+<span id="cb169-15"><a href="#cb169-15" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Neither"</span></span>
+<span id="cb169-16"><a href="#cb169-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb169-17"><a href="#cb169-17" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb170"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb170-1"><a href="#cb170-1" aria-hidden="true" tabindex="-1"></a>results_combination <span class="ot">&lt;-</span> <span class="fu">filter</span>(results_combination, <span class="fu">is.finite</span>(lfc_cell_dex), <span class="fu">is.finite</span>(lfc_dex))</span>
@@ -63765,11 +63749,11 @@ low counts [2]     : 0, 0%
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb171"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb171-1"><a href="#cb171-1" aria-hidden="true" tabindex="-1"></a>correlation</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.9617721</code></pre>
+<pre><code>[1] 0.9628589</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb173"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb173-1"><a href="#cb173-1" aria-hidden="true" tabindex="-1"></a>r_squared</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.9250056</code></pre>
+<pre><code>[1] 0.9270973</code></pre>
 </div>
 </div>
 <p>6</p>
@@ -63847,7 +63831,7 @@ Attaching package: 'limma'</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb187"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb187-1"><a href="#cb187-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of DEGs in cell + dex</span></span>
 <span id="cb187-2"><a href="#cb187-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(results_combination<span class="sc">$</span>sig_cell_dex)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 3834</code></pre>
+<pre><code>[1] 3825</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb189"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb189-1"><a href="#cb189-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of DEGs in dex</span></span>
 <span id="cb189-2"><a href="#cb189-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(results_combination<span class="sc">$</span>sig_dex)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -63859,7 +63843,7 @@ Attaching package: 'limma'</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>
            Both Cell + dex only        Dex only         Neither 
-           2582            1252              94            9114 </code></pre>
+           2582            1243              94            9104 </code></pre>
 </div>
 </div>
 <p>1: The two PCA plots are similar. PC1 explains 48.71% of the variation for ~ dex and 51.50% for ~ cell + dex. Both separate treatment groups along PC1 and show cell line differences along PC2. After removing cell effects with limma while preserving dex, PC1 explains 91.69% of the adjusted variation and clearly separates the treatment groups(more clustered?)</p>
@@ -64438,7 +64422,7 @@ Attaching package: 'limma'</code></pre>
 <span id="cb193-37"><a href="#cb193-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb193-38"><a href="#cb193-38" aria-hidden="true" tabindex="-1"></a>EnhancedVolcano: volcano plots displaying differential expression results</span>
 <span id="cb193-39"><a href="#cb193-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-40"><a href="#cb193-40" aria-hidden="true" tabindex="-1"></a>clusterProfiler: functional enrichment analysis of gene sets</span>
+<span id="cb193-40"><a href="#cb193-40" aria-hidden="true" tabindex="-1"></a>clusterProfiler:: functional enrichment analysis of gene sets</span>
 <span id="cb193-41"><a href="#cb193-41" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb193-42"><a href="#cb193-42" aria-hidden="true" tabindex="-1"></a><span class="fu"># Data Import</span></span>
 <span id="cb193-43"><a href="#cb193-43" aria-hidden="true" tabindex="-1"></a></span>
@@ -65144,106 +65128,90 @@ Attaching package: 'limma'</code></pre>
 <span id="cb193-871"><a href="#cb193-871" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb193-872"><a href="#cb193-872" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb193-875"><a href="#cb193-875" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb193-876"><a href="#cb193-876" aria-hidden="true" tabindex="-1"></a>results_cell_dex <span class="ot">&lt;-</span> res <span class="sc">%&gt;%</span></span>
-<span id="cb193-877"><a href="#cb193-877" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb193-878"><a href="#cb193-878" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">geneid =</span> <span class="fu">rownames</span>(.)) <span class="sc">%&gt;%</span></span>
-<span id="cb193-879"><a href="#cb193-879" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb193-880"><a href="#cb193-880" aria-hidden="true" tabindex="-1"></a>    geneid,</span>
-<span id="cb193-881"><a href="#cb193-881" aria-hidden="true" tabindex="-1"></a>    <span class="at">lfc_cell_dex =</span> log2FoldChange,</span>
-<span id="cb193-882"><a href="#cb193-882" aria-hidden="true" tabindex="-1"></a>    <span class="at">padj_cell_dex =</span> padj</span>
-<span id="cb193-883"><a href="#cb193-883" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb193-884"><a href="#cb193-884" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-885"><a href="#cb193-885" aria-hidden="true" tabindex="-1"></a>results_dex <span class="ot">&lt;-</span> res_dex <span class="sc">%&gt;%</span></span>
-<span id="cb193-886"><a href="#cb193-886" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb193-887"><a href="#cb193-887" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">geneid =</span> <span class="fu">rownames</span>(.)) <span class="sc">%&gt;%</span></span>
-<span id="cb193-888"><a href="#cb193-888" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
-<span id="cb193-889"><a href="#cb193-889" aria-hidden="true" tabindex="-1"></a>    geneid,</span>
-<span id="cb193-890"><a href="#cb193-890" aria-hidden="true" tabindex="-1"></a>    <span class="at">lfc_dex =</span> log2FoldChange,</span>
-<span id="cb193-891"><a href="#cb193-891" aria-hidden="true" tabindex="-1"></a>    <span class="at">padj_dex =</span> padj</span>
+<span id="cb193-876"><a href="#cb193-876" aria-hidden="true" tabindex="-1"></a>results_cell_dex <span class="ot">&lt;-</span> <span class="fu">prepare_deg_table</span>(res, <span class="at">lfc_cutoff =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb193-877"><a href="#cb193-877" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(geneid, <span class="at">lfc_cell_dex =</span> log2FoldChange, <span class="at">sig_cell_dex =</span> diffexpressed)</span>
+<span id="cb193-878"><a href="#cb193-878" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-879"><a href="#cb193-879" aria-hidden="true" tabindex="-1"></a>results_dex <span class="ot">&lt;-</span> <span class="fu">prepare_deg_table</span>(res_dex, <span class="at">lfc_cutoff =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb193-880"><a href="#cb193-880" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(geneid, <span class="at">lfc_dex =</span> log2FoldChange, <span class="at">sig_dex =</span> diffexpressed)</span>
+<span id="cb193-881"><a href="#cb193-881" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-882"><a href="#cb193-882" aria-hidden="true" tabindex="-1"></a>results_combination <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">inner_join</span>(results_cell_dex, results_dex, <span class="at">by =</span> <span class="st">"geneid"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb193-883"><a href="#cb193-883" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb193-884"><a href="#cb193-884" aria-hidden="true" tabindex="-1"></a>    <span class="at">sig_cell_dex =</span> (sig_cell_dex <span class="sc">!=</span> <span class="st">"NS"</span>),</span>
+<span id="cb193-885"><a href="#cb193-885" aria-hidden="true" tabindex="-1"></a>    <span class="at">sig_dex =</span> (sig_dex <span class="sc">!=</span> <span class="st">"NS"</span>),</span>
+<span id="cb193-886"><a href="#cb193-886" aria-hidden="true" tabindex="-1"></a>    <span class="at">significance =</span> <span class="fu">case_when</span>(</span>
+<span id="cb193-887"><a href="#cb193-887" aria-hidden="true" tabindex="-1"></a>      sig_cell_dex <span class="sc">&amp;</span> sig_dex <span class="sc">~</span> <span class="st">"Both"</span>,</span>
+<span id="cb193-888"><a href="#cb193-888" aria-hidden="true" tabindex="-1"></a>      sig_cell_dex <span class="sc">~</span> <span class="st">"Cell + dex only"</span>,</span>
+<span id="cb193-889"><a href="#cb193-889" aria-hidden="true" tabindex="-1"></a>      sig_dex <span class="sc">~</span> <span class="st">"Dex only"</span>,</span>
+<span id="cb193-890"><a href="#cb193-890" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Neither"</span></span>
+<span id="cb193-891"><a href="#cb193-891" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb193-892"><a href="#cb193-892" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb193-893"><a href="#cb193-893" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-894"><a href="#cb193-894" aria-hidden="true" tabindex="-1"></a>results_combination <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">inner_join</span>(</span>
-<span id="cb193-895"><a href="#cb193-895" aria-hidden="true" tabindex="-1"></a>  results_cell_dex,</span>
-<span id="cb193-896"><a href="#cb193-896" aria-hidden="true" tabindex="-1"></a>  results_dex,</span>
-<span id="cb193-897"><a href="#cb193-897" aria-hidden="true" tabindex="-1"></a>  <span class="at">by =</span> <span class="st">"geneid"</span></span>
-<span id="cb193-898"><a href="#cb193-898" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb193-899"><a href="#cb193-899" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb193-900"><a href="#cb193-900" aria-hidden="true" tabindex="-1"></a>    <span class="at">sig_cell_dex =</span> <span class="sc">!</span><span class="fu">is.na</span>(padj_cell_dex) <span class="sc">&amp;</span> padj_cell_dex <span class="sc">&lt;</span> <span class="fl">0.05</span>,</span>
-<span id="cb193-901"><a href="#cb193-901" aria-hidden="true" tabindex="-1"></a>    <span class="at">sig_dex =</span> <span class="sc">!</span><span class="fu">is.na</span>(padj_dex) <span class="sc">&amp;</span> padj_dex <span class="sc">&lt;</span> <span class="fl">0.05</span>,</span>
-<span id="cb193-902"><a href="#cb193-902" aria-hidden="true" tabindex="-1"></a>    <span class="at">significance =</span> <span class="fu">case_when</span>(</span>
-<span id="cb193-903"><a href="#cb193-903" aria-hidden="true" tabindex="-1"></a>      sig_cell_dex <span class="sc">&amp;</span> sig_dex <span class="sc">~</span> <span class="st">"Both"</span>,</span>
-<span id="cb193-904"><a href="#cb193-904" aria-hidden="true" tabindex="-1"></a>      sig_cell_dex <span class="sc">~</span> <span class="st">"Cell + dex only"</span>,</span>
-<span id="cb193-905"><a href="#cb193-905" aria-hidden="true" tabindex="-1"></a>      sig_dex <span class="sc">~</span> <span class="st">"Dex only"</span>,</span>
-<span id="cb193-906"><a href="#cb193-906" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Neither"</span></span>
-<span id="cb193-907"><a href="#cb193-907" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb193-908"><a href="#cb193-908" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb193-909"><a href="#cb193-909" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-910"><a href="#cb193-910" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb193-894"><a href="#cb193-894" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb193-895"><a href="#cb193-895" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-898"><a href="#cb193-898" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb193-899"><a href="#cb193-899" aria-hidden="true" tabindex="-1"></a>results_combination <span class="ot">&lt;-</span> <span class="fu">filter</span>(results_combination, <span class="fu">is.finite</span>(lfc_cell_dex), <span class="fu">is.finite</span>(lfc_dex))</span>
+<span id="cb193-900"><a href="#cb193-900" aria-hidden="true" tabindex="-1"></a>correlation <span class="ot">&lt;-</span> <span class="fu">cor</span>(results_combination<span class="sc">$</span>lfc_cell_dex, results_combination<span class="sc">$</span>lfc_dex, <span class="at">method =</span> <span class="st">"pearson"</span>)</span>
+<span id="cb193-901"><a href="#cb193-901" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(lfc_dex <span class="sc">~</span> lfc_cell_dex, <span class="at">data =</span> results_combination)</span>
+<span id="cb193-902"><a href="#cb193-902" aria-hidden="true" tabindex="-1"></a>r_squared <span class="ot">&lt;-</span> <span class="fu">summary</span>(fit)<span class="sc">$</span>r.squared</span>
+<span id="cb193-903"><a href="#cb193-903" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-904"><a href="#cb193-904" aria-hidden="true" tabindex="-1"></a>lfc_scatter <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(results_combination, <span class="fu">aes</span>(<span class="at">x =</span> lfc_cell_dex, <span class="at">y =</span> lfc_dex)) <span class="sc">+</span></span>
+<span id="cb193-905"><a href="#cb193-905" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> significance), <span class="at">size =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb193-906"><a href="#cb193-906" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>,<span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray"</span>) <span class="sc">+</span></span>
+<span id="cb193-907"><a href="#cb193-907" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span></span>
+<span id="cb193-908"><a href="#cb193-908" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb193-909"><a href="#cb193-909" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb193-910"><a href="#cb193-910" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"LFC comparison"</span>, <span class="at">x =</span> <span class="st">"log2FC: ~ cell + dex"</span>, <span class="at">y =</span> <span class="st">"log2FC: ~ dex"</span>)</span>
 <span id="cb193-911"><a href="#cb193-911" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-914"><a href="#cb193-914" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb193-915"><a href="#cb193-915" aria-hidden="true" tabindex="-1"></a>results_combination <span class="ot">&lt;-</span> <span class="fu">filter</span>(results_combination, <span class="fu">is.finite</span>(lfc_cell_dex), <span class="fu">is.finite</span>(lfc_dex))</span>
-<span id="cb193-916"><a href="#cb193-916" aria-hidden="true" tabindex="-1"></a>correlation <span class="ot">&lt;-</span> <span class="fu">cor</span>(results_combination<span class="sc">$</span>lfc_cell_dex, results_combination<span class="sc">$</span>lfc_dex, <span class="at">method =</span> <span class="st">"pearson"</span>)</span>
-<span id="cb193-917"><a href="#cb193-917" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(lfc_dex <span class="sc">~</span> lfc_cell_dex, <span class="at">data =</span> results_combination)</span>
-<span id="cb193-918"><a href="#cb193-918" aria-hidden="true" tabindex="-1"></a>r_squared <span class="ot">&lt;-</span> <span class="fu">summary</span>(fit)<span class="sc">$</span>r.squared</span>
+<span id="cb193-912"><a href="#cb193-912" aria-hidden="true" tabindex="-1"></a>lfc_scatter</span>
+<span id="cb193-913"><a href="#cb193-913" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-914"><a href="#cb193-914" aria-hidden="true" tabindex="-1"></a>correlation</span>
+<span id="cb193-915"><a href="#cb193-915" aria-hidden="true" tabindex="-1"></a>r_squared</span>
+<span id="cb193-916"><a href="#cb193-916" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb193-917"><a href="#cb193-917" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-918"><a href="#cb193-918" aria-hidden="true" tabindex="-1"></a>6</span>
 <span id="cb193-919"><a href="#cb193-919" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-920"><a href="#cb193-920" aria-hidden="true" tabindex="-1"></a>lfc_scatter <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(results_combination, <span class="fu">aes</span>(<span class="at">x =</span> lfc_cell_dex, <span class="at">y =</span> lfc_dex)) <span class="sc">+</span></span>
-<span id="cb193-921"><a href="#cb193-921" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> significance), <span class="at">size =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb193-922"><a href="#cb193-922" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>,<span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray"</span>) <span class="sc">+</span></span>
-<span id="cb193-923"><a href="#cb193-923" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span></span>
-<span id="cb193-924"><a href="#cb193-924" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb193-925"><a href="#cb193-925" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb193-926"><a href="#cb193-926" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"LFC comparison"</span>, <span class="at">x =</span> <span class="st">"log2FC: ~ cell + dex"</span>, <span class="at">y =</span> <span class="st">"log2FC: ~ dex"</span>)</span>
-<span id="cb193-927"><a href="#cb193-927" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-928"><a href="#cb193-928" aria-hidden="true" tabindex="-1"></a>lfc_scatter</span>
+<span id="cb193-922"><a href="#cb193-922" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb193-923"><a href="#cb193-923" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(limma)</span>
+<span id="cb193-924"><a href="#cb193-924" aria-hidden="true" tabindex="-1"></a>mat_no_cell <span class="ot">&lt;-</span> limma<span class="sc">::</span><span class="fu">removeBatchEffect</span>(</span>
+<span id="cb193-925"><a href="#cb193-925" aria-hidden="true" tabindex="-1"></a>  <span class="fu">assay</span>(vsd),</span>
+<span id="cb193-926"><a href="#cb193-926" aria-hidden="true" tabindex="-1"></a>  <span class="at">batch =</span> vsd<span class="sc">$</span>cell,</span>
+<span id="cb193-927"><a href="#cb193-927" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">model.matrix</span>(<span class="sc">~</span> dex, <span class="at">data =</span> <span class="fu">as.data.frame</span>(<span class="fu">colData</span>(vsd)))</span>
+<span id="cb193-928"><a href="#cb193-928" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb193-929"><a href="#cb193-929" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-930"><a href="#cb193-930" aria-hidden="true" tabindex="-1"></a>correlation</span>
-<span id="cb193-931"><a href="#cb193-931" aria-hidden="true" tabindex="-1"></a>r_squared</span>
-<span id="cb193-932"><a href="#cb193-932" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb193-933"><a href="#cb193-933" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-934"><a href="#cb193-934" aria-hidden="true" tabindex="-1"></a>6</span>
-<span id="cb193-935"><a href="#cb193-935" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-938"><a href="#cb193-938" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb193-939"><a href="#cb193-939" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(limma)</span>
-<span id="cb193-940"><a href="#cb193-940" aria-hidden="true" tabindex="-1"></a>mat_no_cell <span class="ot">&lt;-</span> limma<span class="sc">::</span><span class="fu">removeBatchEffect</span>(</span>
-<span id="cb193-941"><a href="#cb193-941" aria-hidden="true" tabindex="-1"></a>  <span class="fu">assay</span>(vsd),</span>
-<span id="cb193-942"><a href="#cb193-942" aria-hidden="true" tabindex="-1"></a>  <span class="at">batch =</span> vsd<span class="sc">$</span>cell,</span>
-<span id="cb193-943"><a href="#cb193-943" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">model.matrix</span>(<span class="sc">~</span> dex, <span class="at">data =</span> <span class="fu">as.data.frame</span>(<span class="fu">colData</span>(vsd)))</span>
-<span id="cb193-944"><a href="#cb193-944" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb193-945"><a href="#cb193-945" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-946"><a href="#cb193-946" aria-hidden="true" tabindex="-1"></a>pca_no_cell <span class="ot">&lt;-</span> mat_no_cell <span class="sc">%&gt;%</span></span>
-<span id="cb193-947"><a href="#cb193-947" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pca</span>(., vsd<span class="sc">@</span>colData, <span class="at">removeVar =</span> <span class="fl">0.9</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb193-948"><a href="#cb193-948" aria-hidden="true" tabindex="-1"></a>  <span class="fu">biplot</span>(</span>
-<span id="cb193-949"><a href="#cb193-949" aria-hidden="true" tabindex="-1"></a>    <span class="at">colby =</span> <span class="st">"cell"</span>,</span>
-<span id="cb193-950"><a href="#cb193-950" aria-hidden="true" tabindex="-1"></a>    <span class="at">shape =</span> <span class="st">"dex"</span>,</span>
-<span id="cb193-951"><a href="#cb193-951" aria-hidden="true" tabindex="-1"></a>    <span class="at">legendPosition =</span> <span class="st">"right"</span>,</span>
-<span id="cb193-952"><a href="#cb193-952" aria-hidden="true" tabindex="-1"></a>    <span class="at">lab =</span> <span class="cn">NULL</span></span>
-<span id="cb193-953"><a href="#cb193-953" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb193-954"><a href="#cb193-954" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-955"><a href="#cb193-955" aria-hidden="true" tabindex="-1"></a>pca_no_cell </span>
-<span id="cb193-956"><a href="#cb193-956" aria-hidden="true" tabindex="-1"></a>pca_plot </span>
-<span id="cb193-957"><a href="#cb193-957" aria-hidden="true" tabindex="-1"></a>pca_plot_dex</span>
-<span id="cb193-958"><a href="#cb193-958" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb193-959"><a href="#cb193-959" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-962"><a href="#cb193-962" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb193-963"><a href="#cb193-963" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of DEGs in cell + dex</span></span>
-<span id="cb193-964"><a href="#cb193-964" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(results_combination<span class="sc">$</span>sig_cell_dex)</span>
-<span id="cb193-965"><a href="#cb193-965" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-966"><a href="#cb193-966" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of DEGs in dex</span></span>
-<span id="cb193-967"><a href="#cb193-967" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(results_combination<span class="sc">$</span>sig_dex)</span>
-<span id="cb193-968"><a href="#cb193-968" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-969"><a href="#cb193-969" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of shared and model-specific DEGs</span></span>
-<span id="cb193-970"><a href="#cb193-970" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(results_combination<span class="sc">$</span>significance)</span>
-<span id="cb193-971"><a href="#cb193-971" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb193-972"><a href="#cb193-972" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-973"><a href="#cb193-973" aria-hidden="true" tabindex="-1"></a>1: The two PCA plots are similar. PC1 explains 48.71% of the variation for \~ dex and 51.50% for \~ cell + dex. Both separate treatment groups along PC1 and show cell line differences along PC2. After removing cell effects with limma while preserving dex, PC1 explains 91.69% of the adjusted variation and clearly separates the treatment groups(more clustered?)</span>
-<span id="cb193-974"><a href="#cb193-974" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-975"><a href="#cb193-975" aria-hidden="true" tabindex="-1"></a>2: Both p-value distributions have a peak near zero and are relatively flat at larger values. The \~ cell + dex model has more small p-values, which means stronger evidence for treatment effects.</span>
-<span id="cb193-976"><a href="#cb193-976" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-977"><a href="#cb193-977" aria-hidden="true" tabindex="-1"></a>3: With padj <span class="sc">\&lt;</span> 0.05 and no LFC cutoff, \~ cell + dex identifies 3,834 DEGs, while \~ dex identifies 2,676.</span>
-<span id="cb193-978"><a href="#cb193-978" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-979"><a href="#cb193-979" aria-hidden="true" tabindex="-1"></a>4: The models share 2,582 DEGs. Another 1,252 are significant only in \~ cell + dex, and 94 only in \~ dex.</span>
-<span id="cb193-980"><a href="#cb193-980" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb193-981"><a href="#cb193-981" aria-hidden="true" tabindex="-1"></a>5: YES.</span>
+<span id="cb193-930"><a href="#cb193-930" aria-hidden="true" tabindex="-1"></a>pca_no_cell <span class="ot">&lt;-</span> mat_no_cell <span class="sc">%&gt;%</span></span>
+<span id="cb193-931"><a href="#cb193-931" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pca</span>(., vsd<span class="sc">@</span>colData, <span class="at">removeVar =</span> <span class="fl">0.9</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb193-932"><a href="#cb193-932" aria-hidden="true" tabindex="-1"></a>  <span class="fu">biplot</span>(</span>
+<span id="cb193-933"><a href="#cb193-933" aria-hidden="true" tabindex="-1"></a>    <span class="at">colby =</span> <span class="st">"cell"</span>,</span>
+<span id="cb193-934"><a href="#cb193-934" aria-hidden="true" tabindex="-1"></a>    <span class="at">shape =</span> <span class="st">"dex"</span>,</span>
+<span id="cb193-935"><a href="#cb193-935" aria-hidden="true" tabindex="-1"></a>    <span class="at">legendPosition =</span> <span class="st">"right"</span>,</span>
+<span id="cb193-936"><a href="#cb193-936" aria-hidden="true" tabindex="-1"></a>    <span class="at">lab =</span> <span class="cn">NULL</span></span>
+<span id="cb193-937"><a href="#cb193-937" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb193-938"><a href="#cb193-938" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-939"><a href="#cb193-939" aria-hidden="true" tabindex="-1"></a>pca_no_cell </span>
+<span id="cb193-940"><a href="#cb193-940" aria-hidden="true" tabindex="-1"></a>pca_plot </span>
+<span id="cb193-941"><a href="#cb193-941" aria-hidden="true" tabindex="-1"></a>pca_plot_dex</span>
+<span id="cb193-942"><a href="#cb193-942" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb193-943"><a href="#cb193-943" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-946"><a href="#cb193-946" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb193-947"><a href="#cb193-947" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of DEGs in cell + dex</span></span>
+<span id="cb193-948"><a href="#cb193-948" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(results_combination<span class="sc">$</span>sig_cell_dex)</span>
+<span id="cb193-949"><a href="#cb193-949" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-950"><a href="#cb193-950" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of DEGs in dex</span></span>
+<span id="cb193-951"><a href="#cb193-951" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(results_combination<span class="sc">$</span>sig_dex)</span>
+<span id="cb193-952"><a href="#cb193-952" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-953"><a href="#cb193-953" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of shared and model-specific DEGs</span></span>
+<span id="cb193-954"><a href="#cb193-954" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(results_combination<span class="sc">$</span>significance)</span>
+<span id="cb193-955"><a href="#cb193-955" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb193-956"><a href="#cb193-956" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-957"><a href="#cb193-957" aria-hidden="true" tabindex="-1"></a>1: The two PCA plots are similar. PC1 explains 48.71% of the variation for \~ dex and 51.50% for \~ cell + dex. Both separate treatment groups along PC1 and show cell line differences along PC2. After removing cell effects with limma while preserving dex, PC1 explains 91.69% of the adjusted variation and clearly separates the treatment groups(more clustered?)</span>
+<span id="cb193-958"><a href="#cb193-958" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-959"><a href="#cb193-959" aria-hidden="true" tabindex="-1"></a>2: Both p-value distributions have a peak near zero and are relatively flat at larger values. The \~ cell + dex model has more small p-values, which means stronger evidence for treatment effects.</span>
+<span id="cb193-960"><a href="#cb193-960" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-961"><a href="#cb193-961" aria-hidden="true" tabindex="-1"></a>3: With padj <span class="sc">\&lt;</span> 0.05 and no LFC cutoff, \~ cell + dex identifies 3,834 DEGs, while \~ dex identifies 2,676.</span>
+<span id="cb193-962"><a href="#cb193-962" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-963"><a href="#cb193-963" aria-hidden="true" tabindex="-1"></a>4: The models share 2,582 DEGs. Another 1,252 are significant only in \~ cell + dex, and 94 only in \~ dex.</span>
+<span id="cb193-964"><a href="#cb193-964" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb193-965"><a href="#cb193-965" aria-hidden="true" tabindex="-1"></a>5: YES.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

@@ -741,32 +741,16 @@ sum(is.na(res_dex$pvalue))
 ```
 
 ```{r}
-results_cell_dex <- res %>%
-  data.frame() %>%
-  mutate(geneid = rownames(.)) %>%
-  dplyr::select(
-    geneid,
-    lfc_cell_dex = log2FoldChange,
-    padj_cell_dex = padj
-  )
+results_cell_dex <- prepare_deg_table(res, lfc_cutoff = 0) %>%
+  dplyr::select(geneid, lfc_cell_dex = log2FoldChange, sig_cell_dex = diffexpressed)
 
-results_dex <- res_dex %>%
-  data.frame() %>%
-  mutate(geneid = rownames(.)) %>%
-  dplyr::select(
-    geneid,
-    lfc_dex = log2FoldChange,
-    padj_dex = padj
-  )
+results_dex <- prepare_deg_table(res_dex, lfc_cutoff = 0) %>%
+  dplyr::select(geneid, lfc_dex = log2FoldChange, sig_dex = diffexpressed)
 
-results_combination <- dplyr::inner_join(
-  results_cell_dex,
-  results_dex,
-  by = "geneid"
-) %>%
+results_combination <- dplyr::inner_join(results_cell_dex, results_dex, by = "geneid") %>%
   mutate(
-    sig_cell_dex = !is.na(padj_cell_dex) & padj_cell_dex < 0.05,
-    sig_dex = !is.na(padj_dex) & padj_dex < 0.05,
+    sig_cell_dex = (sig_cell_dex != "NS"),
+    sig_dex = (sig_dex != "NS"),
     significance = case_when(
       sig_cell_dex & sig_dex ~ "Both",
       sig_cell_dex ~ "Cell + dex only",
