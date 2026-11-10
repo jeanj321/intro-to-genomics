@@ -20,6 +20,8 @@ Macrophage + LPS (What is the expected outcome?)
 
 Intro to Macrophage and LPS
 
+Macrophages are innate immune cells that help detect and remove pathogens and coordinate inflammatory responses. Lipopolysaccharide (LPS) is a component of the outer membrane of Gram-negative bacteria. Recognition of LPS by the TLR4–MD-2 receptor complex initiates innate immune signaling.
+
 Expected Outcome?
 
 1.  Experimental Design:
