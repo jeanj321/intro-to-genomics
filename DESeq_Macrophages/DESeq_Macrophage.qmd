@@ -147,3 +147,17 @@ head(raw_counts)
 metadata_table <- read.delim("/project/spott/lizarraga/pacbio_analysis/macrophage_project/rna_seq/aligned/sample_names.txt", row.names = 1)
 rownames(metadata_table)
 ```
+
+```{r}
+## import data function
+import_counts <- function(paths, sample_name, skip = 4, col_select = c(1, 4)) {
+  count_tables <- lapply(paths, function(x) read_delim(x, skip = skip, col_names = FALSE, col_select = col_select))
+  names(count_tables) <- sample_name
+
+  stopifnot(all(sapply(count_tables, function(x) identical(count_tables[[1]]$X1, x$X1))))
+  raw_counts <- sapply(count_tables, function(x) x[[2]])
+  rownames(raw_counts) <- count_tables[[1]]$X1
+
+  return(raw_counts)
+}
+```
